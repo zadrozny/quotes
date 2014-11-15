@@ -21,7 +21,7 @@ DATABASE = 'quotations.db'
 
 app.config.from_object(__name__)
 
-
+app.secret_key = 'boo'
 
 
 
@@ -60,14 +60,14 @@ def home():
 @app.route('/_gen_quote')
 def generate_quote():
 	'''Generate a random quote for ajax refresh (ie, next button)'''
-	g = connect_db()
-	cur = g.execute('SELECT quote, author, tags FROM quotes')
+	d = connect_db()
+	cur = d.execute('SELECT quote, author, tags FROM quotes')
 	
 	#Rewrite below as a named tuple, more space efficient, in collections module
 	quotes = [dict(quote=row[0], author=row[1]) for row in cur.fetchall()]
 	randomquote = [random.choice(quotes)]
 	
-	g.close()
+	d.close()
 	return jsonify(randomquote=randomquote)
 
 
@@ -75,9 +75,9 @@ def generate_quote():
 @app.route('/_gen_topic/<name>')
 def generate_topic(name):
 	'''Show the quotes for a given topic'''
-	g = connect_db()
+	d = connect_db()
 
-	cur = g.execute("""SELECT quotes.quote, quotes.author 
+	cur = d.execute("""SELECT quotes.quote, quotes.author 
 					   FROM quotes 
 					   INNER JOIN topics 
 					   ON quotes.Id=topics.Id 
@@ -85,7 +85,7 @@ def generate_topic(name):
 
 	quotes = [dict(quote=row[0], author=row[1]) for row in cur.fetchall()]
 	
-	g.close()
+	d.close()
 	return jsonify(quotes=quotes)
 
 
@@ -93,9 +93,9 @@ def generate_topic(name):
 @app.route('/_gen_author/<name>')
 def generate_author(name):
 	'''Show quotes from a given author'''
-	g = connect_db()
+	d = connect_db()
 
-	cur = g.execute("""SELECT quotes.quote, quotes.author 
+	cur = d.execute("""SELECT quotes.quote, quotes.author 
 					FROM quotes 
 					INNER JOIN authors 
 					ON quotes.Id=authors.Id 
@@ -104,7 +104,7 @@ def generate_author(name):
 	# Data structure of below should prob be changed
 	quotes = [dict(quote=row[0], author=row[1]) for row in cur.fetchall()] 
 	
-	g.close()
+	d.close()
 	return jsonify(quotes=quotes)
 
 
@@ -113,13 +113,13 @@ def generate_author_list():
 	'''Generate the index of authors'''
 	g = connect_db()
 	
-	cur = g.execute('''SELECT DISTINCT author_full, author_url 
+	cur = d.execute('''SELECT DISTINCT author_full, author_url 
 					   FROM authors 
 				       ORDER BY author_full ASC''') 
 
 	authors = [dict(author=row[0], url=row[1]) for row in cur.fetchall()]
 	
-	g.close()
+	d.close()
 
 	return jsonify(authors=authors)
 
