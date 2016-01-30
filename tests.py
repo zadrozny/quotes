@@ -5,6 +5,7 @@ import ezodf
 import os
 import pandas as pd
 import shutil
+from collections import Counter
 from paths import f # Collection
 
 
@@ -83,7 +84,14 @@ def names(df):
     assert inconsitencies == [], 'These URLs are inconsistent\n {}'.format(inconsitencies)
 
 
-if __name__ == "__main__":
+def tags(df):
+    tags = Counter()
+    for row in df['TAGS']:
+        for tag in row.split('~'):
+            tags[tag.strip()] += 1
+    return sorted([(k,v) for k,v in tags.items()], key=lambda x: x[1], reverse=True)
+
+def main():
     pwd = os.path.dirname(os.path.realpath(__file__))
     shutil.copy2(f, pwd+'/WORDS_copy.ods')
     spreadsheet = ezodf.opendoc(pwd+'/WORDS_copy.ods')
@@ -96,3 +104,8 @@ if __name__ == "__main__":
     illegal_urls(df)
     url(df)
     names(df)
+    print tags(df)
+
+
+if __name__ == "__main__":
+    main()
