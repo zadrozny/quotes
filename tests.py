@@ -4,9 +4,20 @@
 import ezodf    
 import os
 import pandas as pd
+import re
 import shutil
-from collections import Counter
+from collections import Counter, defaultdict
 from paths import f # Collection
+
+
+with open('linux_words_fedora.txt', 'r') as linux_words:
+    words = set([w.strip('\n').lower() for w in linux_words.readlines()[1:]])
+
+
+def spellcheck(word):
+    if word not in words:
+        return False
+    return True
 
 
 def load(rows):
@@ -84,12 +95,28 @@ def names(df):
     assert inconsitencies == [], 'These URLs are inconsistent\n {}'.format(inconsitencies)
 
 
-def tags(df):
-    tags = Counter()
+def spellcheck_tags(df):
+    '''Check the spelling of each tag against appended Unix list'''
+    d = defaultdict(list)
+    for row, pk in zip(df['TAGS'], df['PK']):
+        for t in re.findall(r'\w+', row): 
+            d[t].append(pk)
+
+    errors = []
+    for w in d:
+        if spellcheck(w.lower()) == False:
+            errors.append((w, d[w])) # Word, row       
+
+    assert errors == [], errors
+
+
+def sort_tags(df):
+    '''Sort tags alphabetically'''
+    ordered = []
     for row in df['TAGS']:
-        for tag in row.split('~'):
-            tags[tag.strip()] += 1
-    return sorted([(k,v) for k,v in tags.items()], key=lambda x: x[1], reverse=True)
+        ordered.append(' ~ '.join(sorted([w.strip() for w in row.split('~')])))
+    return '\n'.join(ordered)
+
 
 def main():
     pwd = os.path.dirname(os.path.realpath(__file__))
@@ -104,7 +131,8 @@ def main():
     illegal_urls(df)
     url(df)
     names(df)
-    print tags(df)
+    spellcheck_tags(df)
+    print sort_tags(df)
 
 
 if __name__ == "__main__":
