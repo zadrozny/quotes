@@ -1,17 +1,19 @@
 #!/bin/python2
 # -*- coding: utf-8 -*-
 
+
 import ezodf    
 import os
 import pandas as pd
 import re
 import shutil
 from collections import Counter, defaultdict
-from paths import f # Collection
+from paths import f # Quotes collection 
 
+pwd = os.path.dirname(os.path.realpath(__file__))
 
-with open('linux_words_fedora.txt', 'r') as linux_words:
-    words = set([w.strip('\n').lower() for w in linux_words.readlines()[1:]])
+with open(pwd+'/nix_words.txt', 'r') as nix:
+    words = set([w.strip('\n').lower() for w in nix.readlines()[1:]])
 
 
 def spellcheck(word):
@@ -59,7 +61,6 @@ def illegal_urls(df):
     for url in df['AUTHOR_URL']:
         if len(url.strip().split()) > 1:
             outlaws.append(url)
-    
     assert outlaws == [], 'These URLs are broken\n {}'.format(outlaws)
 
 
@@ -74,9 +75,8 @@ def url(df):
                 # break
         else:
             d[url] = name
-    
     inconsitencies = sorted(list(set([k for k,v in d.items() if v == '!!!'])))
-    assert inconsitencies == [], 'These names are inconsistent\n {}'.format(inconsitencies)
+    assert inconsitencies == [], 'Inconsistent names\n {}'.format(inconsitencies)
 
 
 def names(df):
@@ -92,7 +92,7 @@ def names(df):
             d[name] = url
     
     inconsitencies = sorted(list(set([k for k,v in d.items() if v == '!!!'])))
-    assert inconsitencies == [], 'These URLs are inconsistent\n {}'.format(inconsitencies)
+    assert inconsitencies == [], 'Inconsistent URL:\n{}'.format(inconsitencies)
 
 
 def spellcheck_tags(df):
@@ -101,12 +101,10 @@ def spellcheck_tags(df):
     for row, pk in zip(df['TAGS'], df['PK']):
         for t in re.findall(r'\w+', row): 
             d[t].append(pk)
-
     errors = []
     for w in d:
         if spellcheck(w.lower()) == False:
             errors.append((w, d[w])) # Word, row       
-
     assert errors == [], errors
 
 
@@ -118,8 +116,7 @@ def sort_tags(df):
     return '\n'.join(ordered)
 
 
-def main():
-    pwd = os.path.dirname(os.path.realpath(__file__))
+def main():    
     shutil.copy2(f, pwd+'/WORDS_copy.ods')
     spreadsheet = ezodf.opendoc(pwd+'/WORDS_copy.ods')
     table = spreadsheet.sheets['ADDED']
@@ -132,7 +129,7 @@ def main():
     url(df)
     names(df)
     spellcheck_tags(df)
-    print sort_tags(df)
+    # print sort_tags(df)
 
 
 if __name__ == "__main__":
