@@ -6,9 +6,11 @@ import ezodf
 import os
 import pandas as pd
 import re
+import requests
 import shutil
-from collections import Counter, defaultdict
+from collections import defaultdict
 from paths import f # Quotes collection 
+from time import sleep
 
 pwd = os.path.dirname(os.path.realpath(__file__))
 
@@ -22,16 +24,25 @@ def spellcheck(word):
     return True
 
 
-def load(rows):
-    '''Loads the data into a Pandas DataFrame object'''
+def load(ods_path, table=None, header=True):
+    '''Loads ods sheet into Pandas and returns a DataFrame object'''
+    file_name = ods_path.split('/')[-1][:-4]
+    shutil.copy2(ods_path, pwd+'/'+file_name+'_copy.ods')
+    spreadsheet = ezodf.opendoc(pwd+'/'+file_name+'_copy.ods')
+    t = spreadsheet.sheets[table]
+    rows = list(t.rows())
+
     container = []
-    for rownum in range(0, len(rows)):
-        row = [c.value for c in rows[rownum]]
-        row = row[0:17]
-        container.append(row)
-    df = pd.DataFrame(container[1:], columns=container[0])
-    df.dropna(inplace=True)
-    df['PK'] = df['PK'].astype(int)
+    for rownum in range(len(rows)):
+        container.append([c.value for c in rows[rownum]])
+
+    if header:
+        df = pd.DataFrame(container[1:], columns=container[0])
+    else:
+        df = pd.DataFrame(container)
+    
+    df.dropna(how='all', inplace=True)
+
     return df
 
 
@@ -117,11 +128,7 @@ def sort_tags(df):
 
 
 def main():    
-    shutil.copy2(f, pwd+'/WORDS_copy.ods')
-    spreadsheet = ezodf.opendoc(pwd+'/WORDS_copy.ods')
-    table = spreadsheet.sheets['ADDED']
-    rows = list(table.rows())
-    df = load(rows)
+    df = load(f, 'ADDED')
 
     # Tests:
     check_pk(df)
