@@ -2,9 +2,9 @@
 
 # Converts ODS file with quotes into SQLite3 database
 
-from paths import f
 import ezodf, os, shutil, sqlite3, xlrd
 import tests
+from paths import f         # Import collection path
 
 tests.main()
 
