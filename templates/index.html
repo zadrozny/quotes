@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+	<head>	
+		<link rel="stylesheet" type=text/css href="{{ url_for('static', filename='css/visualizer.css')}}"> 
+		<link rel="stylesheet" type=text/css href="{{ url_for('static', filename='css/bootstrap.css')}}">
+		<script type=text/javascript>
+			$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+		</script>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+		<meta charset='UTF-8'>
+	</head>
+	<body>
+		<header>
+			<div class="navbar navbar-inverse">
+				<div class="navbar-inner">
+					<a class="brand" href="http://themattheweffect.org/">Home</a>
+					<ul class="nav">
+					</ul>
+				</div>
+			</div>
+		</header>
+
+		<script type=text/javascript>
+			$(function() {
+				$('a.generatequote').bind('click', function(e) {
+					e.preventDefault();
+					$.getJSON($SCRIPT_ROOT + '/_gen_quote', function(data) {
+							var newtext = '';
+							$.each(data.randomquote, function(index, quote) {
+								//Making one big string and calling html once is cheaper than html and append many times
+								newtext += '<div class="quote">' + quote.quote + '</div>';
+								newtext += '<div class="author">' + quote.author + '</div>';
+								newtext += '</br></br>'; 
+							});
+							$('#container').html(newtext);
+						console.log(data);
+					});
+					return false;
+				});
+			});
+
+			$(function() {
+				$('a.generatetopic').bind('click', function(e) {
+					e.preventDefault();
+					$.getJSON($SCRIPT_ROOT + '/_gen_topic/' + $(this).attr('data-tag'), function(data) {
+							var newtext = '';
+							$.each(data.quotes, function(index, quote) {
+								newtext += '<div class="quote">' + quote.quote + '</div>';
+								newtext += '<div class="author">' + quote.author + '</div>';
+								newtext += '</br></br>'; //Making one big string and calling html once is cheaper than html + append many times
+							});
+							$('#container').html(newtext);
+						console.log(data);
+					});
+					return false;
+				});
+			});
+
+			$(function() {
+				$('a.generateauthor').bind('click', function(e) {
+					e.preventDefault();
+					$.getJSON($SCRIPT_ROOT + '/_gen_author/' + $(this).attr('data-tag'), function(data) {
+							var newtext = '';
+							$.each(data.quotes, function(index, quote) {
+								newtext += '<div class="quote">' + quote.quote + '</div>';
+								newtext += '</br></br>'; //Making one big string and calling html once is cheaper than html + append many times
+								//need to designate the author once
+							});
+							$('#container').html(newtext);
+						console.log(data);
+					});
+					return false;
+				});
+			});
+
+		</script>
+
+	 	<div id="sidebar">
+	 		<b><a href="#" onclick="show('sidebartopics')">THEMES</a> | <a href="#" onclick="show('sidebarauthor')">AUTHORS</a></b></br></br>
+
+	 		<div id="sidebarcontents">
+		 		<div id="sidebartopics" class="dynamic_link">
+		 		<div class="author"></div>
+				{% for item in tags%}
+				<a href="/topic/{{item.tag}}" class="generatetopic" data-tag="{{ item.tag }}">{{item.tag}}</a></br> <!-- Make link LC! -->
+				{% endfor %}
+				</div>
+
+				<div id="sidebarauthor" class="dynamic_link" style="display:none">
+				{% for item in authors%}
+				<a href="/author/{{item.url}}" class="generateauthor" data-tag="{{ item.url }}">{{item.author | safe}}</a></br> 
+				<!-- Make link LC! -->
+				{% endfor %}
+				</div>
+			</div>
+		</div>
+
+
+
+		<div id="container">
+			<div class="quote">
+				{{randomquote['quote']|safe}}
+			</div>
+			<div class="author">
+				{{randomquote['author']|safe}}
+			</div>
+	 	</div>
+
+		<div id="rightarrow">
+			<a href=# class="generatequote"; style="text-decoration: none">
+ 			>
+			</a>
+		</div>
+
+	    <script>
+            function show( elem )
+            {
+                $('.dynamic_link').hide();
+                $('#'+elem).show();
+            }
+
+        </script>
+	</body>
+</html>
