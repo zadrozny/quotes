@@ -4,7 +4,9 @@
 
 from paths import f
 import ezodf, os, shutil, sqlite3, xlrd
+import tests
 
+tests.main()
 
 def main():
     pwd = os.path.dirname(os.path.realpath(__file__))
@@ -38,6 +40,7 @@ def main():
     spreadsheet = ezodf.opendoc(pwd+'/WORD_copy.ods')
     table = spreadsheet.sheets['ADDED']
     rows = list(table.rows())
+
 
     for rownum in range(1, len(rows)):
         row = [c.value for c in rows[rownum]]
