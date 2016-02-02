@@ -127,15 +127,23 @@ def sort_tags(df):
     return '\n'.join(ordered)
 
 
+def check_bios(added, biographies):
+    '''Check for inconsistencies between biographies table and added table'''
+    assert set(added['AUTHOR_FULL']) == set(biographies['AUTHOR_FULL']), \
+           (set(added['AUTHOR_FULL']) - set(biographies['AUTHOR_FULL']), set(biographies['AUTHOR_FULL']) - set(added['AUTHOR_FULL']))
+
+
 def main():    
-    df = load(f, 'ADDED')
+    added = load(f, 'ADDED')
+    biographies = load(f, 'BIOGRAPHIES')
+    check_bios(added, biographies)
 
     # Tests:
-    check_pk(df)
-    illegal_urls(df)
-    url(df)
-    names(df)
-    spellcheck_tags(df)
+    check_pk(added)
+    illegal_urls(added)
+    url(added)
+    names(added)
+    spellcheck_tags(added)
     # print sort_tags(df)
 
 
